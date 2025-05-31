@@ -1,34 +1,61 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Camera, Sparkles, Dog, Cat, RotateCcw } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import PredictionResult from '@/components/ui/PredictionResult';
+import axios from 'axios';
 
 export default function Home() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<{
     class: 'cat' | 'dog';
     confidence: number;
   } | null>(null);
 
-  const handleImageUpload = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
+  const handleImageUpload = (file: File) => {
+    setSelectedImage(file);
+    setPreviewUrl(URL.createObjectURL(file)); 
     setShowUpload(false);
     setPrediction(null);
   };
 
   const handleUploadNext = () => {
     setShowUpload(true);
+    setPreviewUrl(null);
     setSelectedImage(null);
     setPrediction(null);
   };
 
   const classifyImage = async () => {
+    if (!selectedImage) return;
 
+    const formData = new FormData();
+    formData.append("file", selectedImage);
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const { label, confidence } = response.data;
+      setPrediction({
+        class: label.toLowerCase() as 'cat' | 'dog',
+        confidence: confidence,
+      });
+    } catch (error) {
+      console.error("Prediction error", error);
+    }
+    finally {
+      setIsLoading(false)
+    }
   };
   
   
@@ -74,7 +101,7 @@ export default function Home() {
                     <div className="space-y-4">
                       <div className="relative group">
                         <img 
-                          src={selectedImage!} 
+                          src={previewUrl!} 
                           alt="Selected" 
                           className="w-full h-48 object-cover rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300"
                         />

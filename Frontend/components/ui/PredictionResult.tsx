@@ -47,7 +47,7 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ prediction, isLoadi
     );
   }
 
-  const confidencePercentage = Math.round(prediction.confidence * 100);
+  const confidencePercentage = Math.round(prediction.confidence);
   const isDog = prediction.class === 'dog';
 
   return (
