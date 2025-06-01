@@ -1,1 +1,1 @@
-# Image-Classifier-CNN
+# Cats And Dogs Image Classifier Using CNN
